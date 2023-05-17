@@ -4,7 +4,7 @@
 
 Clone the repository
 ```bash
-https://github.com/micxyj/amazon-kendra-langchain-cn.git
+git clone https://github.com/micxyj/amazon-kendra-langchain-cn.git
 ```
 
 Move to the repo dir
