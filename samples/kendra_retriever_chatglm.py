@@ -47,10 +47,8 @@ def build_chain():
     prompt_template = """
     下面是一段人与 AI 的友好对话。 
     AI 很健谈，并根据其上下文提供了许多具体细节。
-    如果 AI 不知道问题的答案，它会如实说出来
-    不知道。
-    {context}
-    说明：根据上述文件，提供详细的答案，{question} 如果文件中没有，则回答“不知道”。解决方案：
+    如果 AI 不知道问题的答案，它会如实说出不知道。
+    说明：根据 {context} 中的内容，为 {question} 提供详细的答案。如果文中没有相关信息，则回答“不知道”。
     """
     PROMPT = PromptTemplate(
         template=prompt_template, input_variables=["context", "question"]
