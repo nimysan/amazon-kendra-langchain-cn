@@ -17,6 +17,8 @@ cd amazon-kendra-langchain-cn
 
 Install the dependencies
 ```bash
+pip install boto3
+
 pip install langchain
 
 pip install streamlit
