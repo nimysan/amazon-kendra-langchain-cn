@@ -1,4 +1,7 @@
-# Amazon Kendra + ChatGLM on SageMaker 进行中文搜索
+# Amazon Kendra + ChatGLM on SageMaker 进行中文增强搜索
+
+## 英文增强搜索方案请参考以下链接：
+https://aws.amazon.com/cn/blogs/machine-learning/quickly-build-high-accuracy-generative-ai-applications-on-enterprise-data-using-amazon-kendra-langchain-and-large-language-models/
 
 ## Installing
 
