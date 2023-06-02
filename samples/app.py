@@ -4,10 +4,12 @@ import sys
 
 import kendra_chat_chatglm as chatglm
 
+# import pydevd_pycharm
+# pydevd_pycharm.settrace('localhost', port=12345, stdoutToServer=True, stderrToServer=True)
 
 USER_ICON = "images/user-icon.png"
 AI_ICON = "images/ai-icon.png"
-MAX_HISTORY_LENGTH = 5
+MAX_HISTORY_LENGTH = 1
 PROVIDER_MAP = {
     'chatglm': 'ChatGLM'
 }
@@ -88,7 +90,7 @@ def write_top_bar():
             provider = PROVIDER_MAP[selected_provider]
         else:
             provider = selected_provider.capitalize()
-        header = f"An AI App powered by Amazon Kendra and {provider}!"
+        header = f"基于 Amazon Kendra and {provider}!"
         st.write(f"<h3 class='main-header'>{header}</h3>", unsafe_allow_html=True)
     with col3:
         clear = st.button("Clear Chat")
@@ -104,6 +106,8 @@ if clear:
 
 def handle_input():
     input = st.session_state.input
+    print("input")
+    print(input)
     question_with_id = {
         'question': input,
         'id': len(st.session_state.questions)
@@ -116,6 +120,8 @@ def handle_input():
 
     llm_chain = st.session_state['llm_chain']
     chain = st.session_state['llm_app']
+    print("------input-----")
+    print(input)
     result = chain.run_chain(llm_chain, input, chat_history)
     answer = result['answer']
     chat_history.append((input, answer))
@@ -180,4 +186,4 @@ with st.container():
     write_chat_message(a, q)
 
 st.markdown('---')
-input = st.text_input("You are talking to an AI, ask any question.", key="input", on_change=handle_input)
+input = st.text_input("你正在跟AI客服对话， 请输入问题开始对话吧!", key="input", on_change=handle_input)

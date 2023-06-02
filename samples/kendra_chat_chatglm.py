@@ -18,7 +18,7 @@ class bcolors:
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
 
-MAX_HISTORY_LENGTH = 5
+MAX_HISTORY_LENGTH = 1
 
 def build_chain():
   region = os.environ["AWS_REGION"]
@@ -31,6 +31,9 @@ def build_chain():
 
       def transform_input(self, prompt: str, model_kwargs: dict) -> bytes:
           #input_str = json.dumps({"inputs": prompt, "parameters": model_kwargs})
+          print("这是进入模型的prompt")
+          print(prompt)
+          print("-------")
           input_str = json.dumps({"ask": prompt})
           return input_str.encode('utf-8')
       
@@ -44,27 +47,45 @@ def build_chain():
 
   llm=SagemakerEndpoint(
           endpoint_name=endpoint_name, 
-          region_name=region, 
+          region_name='ap-southeast-1',
           model_kwargs={"temperature":1e-10, "max_length": 500},
           content_handler=content_handler
       )
-      
-  retriever = KendraIndexRetriever(kendraindex=kendra_index_id, 
+
+  print(kendra_index_id)
+  print("region " + region)
+  retriever = KendraIndexRetriever(kendraindex=kendra_index_id,
       awsregion=region, 
       return_source_documents=True)
 
   prompt_template = """
-  下面是一段人与 AI 的友好对话。
-  AI 很健谈，并根据其上下文提供了许多具体细节。
-  如果 AI 不知道问题的答案，它会如实说出不知道。
-  说明：请根据 {context} 中的内容，用中文为 {question} 提供详细的答案。
+      假设你是一个AI客服，
+      
+      现有问答对如下：
+     '''
+     {context}
+     '''
+     请根据以上问答对，整理语言， 并简洁，准确的回答以下问题：
+   "{question}?"
+   
+    
   """
   PROMPT = PromptTemplate(
       template=prompt_template, input_variables=["context", "question"]
   )
 
+  _template = """
+  给定以下对话和一个后续问题，将后续问题重述为一个独立的问题。
 
-  qa = ConversationalRetrievalChain.from_llm(llm=llm, retriever=retriever, qa_prompt=PROMPT, return_source_documents=True)
+  对话:
+  {chat_history}
+  接下来的问题: {question}
+  标准问题:
+  """
+  CONDENSE_QUESTION_PROMPT = PromptTemplate.from_template(_template)
+
+
+  qa = ConversationalRetrievalChain.from_llm(llm=llm, retriever=retriever, qa_prompt=PROMPT, condense_question_prompt=CONDENSE_QUESTION_PROMPT, return_source_documents=True)
   return qa
 
 def run_chain(chain, prompt: str, history=[]):

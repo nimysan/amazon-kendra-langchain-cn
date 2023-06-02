@@ -41,8 +41,11 @@ class KendraIndexRetriever(BaseRetriever):
 
         docs = get_relevant_documents('This is my query')
         """
+        print("----- in ----> " + query)
         docs = kendra_query(self.kclient, query, self.k, self.kendraindex)
-        return docs
+        # print(docs[0:1])
+        print("搜索的答案个数", len(docs))
+        return docs;
 
     async def aget_relevant_documents(self, query: str) -> List[Document]:
         return await super().aget_relevant_documents(query)

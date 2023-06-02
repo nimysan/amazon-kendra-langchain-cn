@@ -35,7 +35,7 @@ def build_chain():
 
     llm=SagemakerEndpoint(
             endpoint_name=endpoint_name, 
-            region_name=region, 
+            region_name='ap-southeast-1',
             model_kwargs={"temperature":1e-10, "max_length": 500},
             content_handler=content_handler
         )
@@ -45,15 +45,20 @@ def build_chain():
         return_source_documents=True)
 
     prompt_template = """
-    下面是一段人与 AI 的友好对话。 
-    AI 很健谈，并根据其上下文提供了许多具体细节。
-    如果 AI 不知道问题的答案，它会如实说出不知道。
-    说明：请根据 {context} 中的内容，用中文为 {question} 提供详细的答案。
+  
+    严格根据以下内容, 直接回答问题: “”“{question}”“”, 只需要你输出给定内容中匹配的部分. 如果没有, 请回答我不知道
+    “”“
+    {context}
+    ”“” 		
     """
     PROMPT = PromptTemplate(
         template=prompt_template, input_variables=["context", "question"]
     )
+
+    print("---------- xxxx  ------------")
+
     chain_type_kwargs = {"prompt": PROMPT}
+
     qa = RetrievalQA.from_chain_type(
         llm, 
         chain_type="stuff", 
@@ -74,8 +79,10 @@ def run_chain(chain, prompt: str, history=[]):
 if __name__ == "__main__":
     chain = build_chain()
     #result = run_chain(chain, "What's SageMaker?")
-    result = run_chain(chain, "什么是人车管控方案？")
+    result = run_chain(chain, "POS收银，怎么挂单")
+    print("------## answer ##------")
     print(result['answer'])
+    print("------###------")
     if 'source_documents' in result:
         print('Sources:')
         for d in result['source_documents']:
