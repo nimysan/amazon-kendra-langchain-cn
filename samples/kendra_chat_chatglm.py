@@ -59,16 +59,17 @@ def build_chain():
       return_source_documents=True)
 
   prompt_template = """
-      假设你是一个AI客服，
-      
-      现有问答对如下：
+      假设你是一个客服，
+
+      请先阅读如下问答对：
      '''
      {context}
      '''
-     请根据以上问答对，整理语言， 并简洁，准确的回答以下问题：
-   "{question}?"
-   
-    
+     请根据以上问答对，挑选最合适的一个问答对，简洁，准确的回答以下问题:
+     '''
+    {question}?
+     '''
+
   """
   PROMPT = PromptTemplate(
       template=prompt_template, input_variables=["context", "question"]
