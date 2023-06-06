@@ -108,7 +108,7 @@ def build_chain():
     qa_chain = load_qa_chain(llm=llm, chain_type="stuff", prompt=PROMPT, verbose=True)
 
     qa = ConversationalRetrievalChain(
-        retriever=build_retriever(),  # pgvector
+        retriever=build_retriever(collection_name),  # pgvector
         question_generator=question_generator,  # 问题产生器
         combine_docs_chain=qa_chain,  # 根据知识召回的数据， 让LLM组织语言回答
         verbose=True,
