@@ -1,9 +1,13 @@
 #MD目录导入
 
 import os
+from typing import List, Tuple
+
 from langchain.document_loaders import DirectoryLoader
 from langchain.embeddings import OpenAIEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain.docstore.document import Document
+
 
 faq_dir=os.environ.get("FAQ_PATH")
 collection_name=os.environ.get("COLLECTION_NAME")
@@ -34,6 +38,7 @@ CONNECTION_STRING = PGVector.connection_string_from_db_params(
     password=os.environ.get("PGVECTOR_PASSWORD", "mysecretpassword"),
 )
 
+print(CONNECTION_STRING)
 #将文档存入向量
 db = PGVector.from_documents(
     embedding=embeddings,
@@ -43,3 +48,11 @@ db = PGVector.from_documents(
 )
 
 print("done")
+
+query = "安装新服务"
+docs_with_score: List[Tuple[Document, float]] = db.similarity_search_with_score(query)
+for doc, score in docs_with_score:
+    print("-" * 80)
+    print("Score: ", score)
+    print(doc.page_content)
+    print("-" * 80)
