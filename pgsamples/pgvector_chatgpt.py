@@ -27,7 +27,6 @@ class bcolors:
 
 MAX_HISTORY_LENGTH = 5
 OPENAI_KEY = os.environ["OPENAI_API_KEY"]
-endpoint_name= os.environ["ENDPOINT_NAME"]
 
 prompt_template = """
 
@@ -64,7 +63,7 @@ _template = """
 CONDENSE_QUESTION_PROMPT = PromptTemplate.from_template(_template)
 
 
-def build_retriever(collection_name="annil-pos-faq-prod"):
+def build_retriever(collection_name="streamax-faq"):
     # PG Vector 向量存储库
 
     CONNECTION_STRING = PGVector.connection_string_from_db_params(

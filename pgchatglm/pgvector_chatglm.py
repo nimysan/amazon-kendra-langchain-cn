@@ -30,25 +30,13 @@ OPENAI_KEY = os.environ["OPENAI_API_KEY"]
 endpoint_name = os.environ["ENDPOINT_NAME"]
 
 prompt_template = """
-
-假设你是一个客服人员, 请严格根据如下指定的内容回答问题.
-
-内容如下:
-
-'''
+假设你是一个POS系统客服人员，你有以下信息:
+-------
 {context}
-'''
+-------
 
-你需要回答的问题如下:
-
-'''
-{question}?
-'''
------
-你需要按以下要求回答:
-1. 如果问题与给定内容不匹配, 请回答“我不知道，请提问与POS系统相关的问题” 并结束回答;
-2. 如果问题与给定内容有多个匹配, 请选择合适的回答
-  """
+请根据以上的信息严格回答问题: {question}？
+"""
 PROMPT = PromptTemplate(
     template=prompt_template, input_variables=["context", "question"]
 )
@@ -58,7 +46,9 @@ _template = """
 
   对话:
   {chat_history}
-  接下来的问题: {question}
+  
+  后续问题: {question}
+  
   标准问题:
   """
 CONDENSE_QUESTION_PROMPT = PromptTemplate.from_template(_template)
@@ -110,8 +100,6 @@ def build_retriever(collection_name="annil-pos-faq-prod"):
     return retriever;
 
 def build_chain():
-
-
     #历史存储器
     memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
 
@@ -119,7 +107,7 @@ def build_chain():
     llm = build_llm();
 
     #问题产生器 - 这个是产生多次问题的的时候的Prompt, 根据History来产生问题
-    question_generator = LLMChain(llm=llm, prompt=CONDENSE_QUESTION_PROMPT, verbose=True)
+    question_generator = LLMChain(llm=OpenAI(), prompt=CONDENSE_QUESTION_PROMPT, verbose=True)
 
     # 这种方式只针对stuff才有效
     qa_chain = load_qa_chain(llm=llm, chain_type="stuff", prompt=PROMPT, verbose=True)
