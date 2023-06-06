@@ -1,13 +1,10 @@
 import os
-import json
 
-from langchain import SagemakerEndpoint
 from langchain.chains import ConversationalRetrievalChain
 from langchain.chains import LLMChain
 from langchain.chains.question_answering import load_qa_chain
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.llms import OpenAI
-from langchain.llms.sagemaker_endpoint import ContentHandlerBase
 from langchain.memory import ConversationBufferMemory
 from langchain.prompts import PromptTemplate
 from langchain.vectorstores.pgvector import PGVector
@@ -27,6 +24,7 @@ class bcolors:
 
 MAX_HISTORY_LENGTH = 5
 OPENAI_KEY = os.environ["OPENAI_API_KEY"]
+collection_name=os.environ.get("COLLECTION_NAME")
 
 prompt_template = """
 
@@ -45,7 +43,7 @@ prompt_template = """
 '''
 -----
 你需要按以下要求回答:
-1. 如果问题与给定内容不匹配, 请回答“我不知道，请提问与POS系统相关的问题” 并结束回答;
+1. 如果问题与给定内容不匹配, 请回答“我不知道，请提问与CEIBA2系统相关的问题” 并结束回答;
 2. 如果问题与给定内容有多个匹配, 请选择合适的回答
   """
 PROMPT = PromptTemplate(
@@ -61,6 +59,7 @@ _template = """
   标准问题:
   """
 CONDENSE_QUESTION_PROMPT = PromptTemplate.from_template(_template)
+
 
 
 def build_retriever(collection_name="streamax-faq"):

@@ -2,3 +2,7 @@ pydevd_pycharm
 pgvector
 openai
 psycopg
+unstructured
+tabulate
+pdf2image
+tiktoken
