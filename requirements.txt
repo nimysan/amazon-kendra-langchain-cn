@@ -1,0 +1,4 @@
+pydevd_pycharm
+pgvector
+openai
+psycopg
