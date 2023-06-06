@@ -1,10 +1,13 @@
 import os
+import json
 
 from langchain.chains import ConversationalRetrievalChain
 from langchain.chains import LLMChain
 from langchain.chains.question_answering import load_qa_chain
 from langchain.embeddings.openai import OpenAIEmbeddings
+from langchain.embeddings.sagemaker_endpoint import EmbeddingsContentHandler
 from langchain.llms import OpenAI
+from langchain.llms.sagemaker_endpoint import LLMContentHandler, SagemakerEndpoint
 from langchain.memory import ConversationBufferMemory
 from langchain.prompts import PromptTemplate
 from langchain.vectorstores.pgvector import PGVector
@@ -24,6 +27,7 @@ class bcolors:
 
 MAX_HISTORY_LENGTH = 5
 OPENAI_KEY = os.environ["OPENAI_API_KEY"]
+endpoint_name = os.environ["ENDPOINT_NAME"]
 
 prompt_template = """
 
@@ -59,10 +63,31 @@ _template = """
   """
 CONDENSE_QUESTION_PROMPT = PromptTemplate.from_template(_template)
 
+# 构造大语言模型
+def build_llm():
+    class ContentHandler(LLMContentHandler):
+        content_type = "application/json"
+        accepts = "application/json"
+        def transform_input(self, prompt: str, model_kwargs: dict) -> bytes:
+            input_str = json.dumps({"ask": prompt})
+            print(prompt)
+            return input_str.encode('utf-8')
+
+        def transform_output(self, output: bytes) -> str:
+            response_json = json.loads(output.read())
+            return response_json["answer"]
+
+    contentHandler = ContentHandler()
+
+    llm = SagemakerEndpoint(
+        endpoint_name=endpoint_name,
+        region_name='ap-southeast-1',
+        content_handler=contentHandler
+    )
+    return llm;
 
 def build_retriever(collection_name="annil-pos-faq-prod"):
     # PG Vector 向量存储库
-
     CONNECTION_STRING = PGVector.connection_string_from_db_params(
         driver=os.environ.get("PGVECTOR_DRIVER", "psycopg2"),
         host=os.environ.get("PGVECTOR_HOST", "localhost"),
@@ -91,7 +116,7 @@ def build_chain():
     memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
 
     # 大语言模型
-    llm = OpenAI()
+    llm = build_llm();
 
     #问题产生器 - 这个是产生多次问题的的时候的Prompt, 根据History来产生问题
     question_generator = LLMChain(llm=llm, prompt=CONDENSE_QUESTION_PROMPT, verbose=True)

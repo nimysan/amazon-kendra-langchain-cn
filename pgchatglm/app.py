@@ -2,7 +2,7 @@ import streamlit as st
 import uuid
 import sys
 
-import pgvector_chatgpt as chatapp
+import pgvector_chatglm as chatapp
 
 import pydevd_pycharm
 #pydevd_pycharm.settrace('localhost', port=12345, stdoutToServer=True, stderrToServer=True)
