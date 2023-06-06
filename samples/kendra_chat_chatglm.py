@@ -3,6 +3,8 @@ from langchain.chains import ConversationalRetrievalChain
 from langchain import SagemakerEndpoint
 from langchain.llms.sagemaker_endpoint import ContentHandlerBase
 from langchain.prompts import PromptTemplate
+from langchain.llms import OpenAI # import OpenAI model
+
 import sys
 import json
 import os
@@ -24,6 +26,7 @@ def build_chain():
   region = os.environ["AWS_REGION"]
   kendra_index_id = os.environ["KENDRA_INDEX_ID"]
   endpoint_name = os.environ["CHATGLM_ENDPOINT"]
+  OPENAI_KEY=os.environ["OPENAI_KEY"]
 
   class ContentHandler(ContentHandlerBase):
       content_type = "application/json"
@@ -51,7 +54,7 @@ def build_chain():
           model_kwargs={"temperature":1e-10, "max_length": 500},
           content_handler=content_handler
       )
-
+  llm = OpenAI(temperature=0.7, openai_api_key=OPENAI_KEY)
   print(kendra_index_id)
   print("region " + region)
   retriever = KendraIndexRetriever(kendraindex=kendra_index_id,
@@ -59,17 +62,25 @@ def build_chain():
       return_source_documents=True)
 
   prompt_template = """
-      假设你是一个客服，
+  
+假设你是一个客服人员, 请严格根据如下指定的内容回答问题.
 
-      请先阅读如下问答对：
-     '''
-     {context}
-     '''
-     请根据以上问答对，挑选最合适的一个问答对，简洁，准确的回答以下问题:
-     '''
-    {question}?
-     '''
+内容如下:
 
+'''
+{context}
+'''
+
+你需要回答的问题如下:
+
+'''
+ {question}?
+'''
+-----
+你需要按以下要求回答:
+1. 如果问题有歧义, 请回答 “报歉” 并结束回答;
+2. 如果问题与给定内容不匹配, 请回答“我不知道，请提问与POS系统相关的问题” 并结束回答;
+3. 如果问题与给定内容有多个匹配, 请挑选最合适的回答;
   """
   PROMPT = PromptTemplate(
       template=prompt_template, input_variables=["context", "question"]
