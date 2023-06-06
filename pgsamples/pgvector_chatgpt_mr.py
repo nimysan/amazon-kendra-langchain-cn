@@ -93,7 +93,7 @@ def build_llm():
     return OpenAI(batch_size=5);  # 大语言模型 map-reduce
 
 
-def build_chain():
+def build_mr_chain():
     print("database collection name ---> " + collection_name)
 
     # 历史存储器
@@ -106,17 +106,14 @@ def build_chain():
     question_generator = LLMChain(llm=llm, prompt=CONDENSE_QUESTION_PROMPT, verbose=True)
 
     # 这种方式只针对stuff才有效
-    # qa_chain = load_qa_with_sources_chain(llm=llm, chain_type="stuff", prompt=PROMPT, verbose=True)
-
-    # 这个是针对map_reduce的
-    qa_chain = load_qa_with_sources_chain(llm=llm, chain_type="map_reduce", question_prompt=PROMPT, verbose=True)
+    # qa_chain = load_qa_with_sources_chain(llm=llm, chain_type="map_reduce", prompt=PROMPT, verbose=True, return_intermediate_steps=True)
+    qa_chain = load_qa_chain(llm=llm, chain_type="map_reduce")
 
     qa = ConversationalRetrievalChain(
         retriever=build_retriever(collection_name),  # pgvector
         question_generator=question_generator,  # 问题产生器
         combine_docs_chain=qa_chain,  # 根据知识召回的数据， 让LLM组织语言回答
-        verbose=True,
-        return_source_documents=True
+        verbose=True
     )
     return qa
 

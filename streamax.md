@@ -63,3 +63,11 @@ postgres=> SELECT typname FROM pg_type WHERE typname = 'vector';
 CREATE EXTENSION vector;
 SELECT typname FROM pg_type WHERE typname = 'vector';
 ```
+
+
+## 问题
+
+1. 如何抓取网页FAQ
+2. 如何更新FAQ？（删除并更新）
+3. 如何解决chatgpt token超出的问题？
+4. 如何解决chatgpt输出慢的问题(--- 打字机 式输出)
