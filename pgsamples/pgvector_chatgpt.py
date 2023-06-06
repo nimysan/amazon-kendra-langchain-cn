@@ -92,6 +92,7 @@ def build_llm():
 
 
 def build_chain():
+    print(collection_name)
 
 
     #历史存储器
