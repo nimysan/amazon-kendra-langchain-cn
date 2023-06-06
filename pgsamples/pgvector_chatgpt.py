@@ -24,7 +24,7 @@ class bcolors:
 
 MAX_HISTORY_LENGTH = 5
 OPENAI_KEY = os.environ["OPENAI_API_KEY"]
-collection_name=os.environ.get("COLLECTION_NAME")
+collection_name = os.environ.get("COLLECTION_NAME")
 
 prompt_template = """
 
@@ -61,8 +61,7 @@ _template = """
 CONDENSE_QUESTION_PROMPT = PromptTemplate.from_template(_template)
 
 
-
-def build_retriever(collection_name="streamax-faq"):
+def build_retriever(collection_name):
     # PG Vector 向量存储库
 
     CONNECTION_STRING = PGVector.connection_string_from_db_params(
@@ -82,37 +81,38 @@ def build_retriever(collection_name="streamax-faq"):
         distance_strategy=DistanceStrategy.COSINE
     )
 
+    print("database connection is---> " + CONNECTION_STRING)
     retriever = store.as_retriever()
-    retriever.search_kwargs = {'k': 2} #dict 省钱的秘诀
+    retriever.search_kwargs = {'k': 2}  # dict 省钱的秘诀
     return retriever;
+
 
 # 构造大语言模型
 def build_llm():
-    return OpenAI(); #大语言模型
+    return OpenAI();  # 大语言模型
 
 
 def build_chain():
-    print(collection_name)
+    print("database collection name ---> " + collection_name)
 
-
-    #历史存储器
+    # 历史存储器
     memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
 
     # 大语言模型
     llm = build_llm();
 
-    #问题产生器 - 这个是产生多次问题的的时候的Prompt, 根据History来产生问题
+    # 问题产生器 - 这个是产生多次问题的的时候的Prompt, 根据History来产生问题
     question_generator = LLMChain(llm=llm, prompt=CONDENSE_QUESTION_PROMPT, verbose=True)
 
     # 这种方式只针对stuff才有效
     qa_chain = load_qa_chain(llm=llm, chain_type="stuff", prompt=PROMPT, verbose=True)
 
     qa = ConversationalRetrievalChain(
-        retriever=build_retriever(), #pgvector
-        question_generator=question_generator, #问题产生器
-        combine_docs_chain=qa_chain, # 根据知识召回的数据， 让LLM组织语言回答
+        retriever=build_retriever(),  # pgvector
+        question_generator=question_generator,  # 问题产生器
+        combine_docs_chain=qa_chain,  # 根据知识召回的数据， 让LLM组织语言回答
         verbose=True,
-        memory=memory #历史记录器
+        memory=memory  # 历史记录器
     )
     return qa
 
@@ -126,4 +126,4 @@ def run_chain(chain, prompt: str, history=[]):
 if __name__ == "__main__":
     qa = build_chain()
     run_chain(qa, "你好", history=[])
-    #print(pp['answer'])
+    # print(pp['answer'])
