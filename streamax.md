@@ -1,6 +1,5 @@
 # 如何构造
 
-
 ```bash
 sudo apt update
 sudo apt install software-properties-common
@@ -20,14 +19,14 @@ alias python='python3'
 
 ## 测试
 
-sudo pip3 install streamlit pgvector langchain 
+sudo pip3 install streamlit pgvector langchain
 
 pip install pgvector #连接pgvector数据库
 
 pip install -r requirements.txt #安装依赖包
 
 ## 安装pgvector驱动
-    
+
 ```bash
 sudo apt-get install libpq-dev
 pip install psycopg2
@@ -60,10 +59,12 @@ postgres=> SELECT typname FROM pg_type WHERE typname = 'vector';
 ```
 
 ```sql
-CREATE EXTENSION vector;
-SELECT typname FROM pg_type WHERE typname = 'vector';
+CREATE
+EXTENSION vector;
+SELECT typname
+FROM pg_type
+WHERE typname = 'vector';
 ```
-
 
 ## 问题
 
@@ -71,3 +72,10 @@ SELECT typname FROM pg_type WHERE typname = 'vector';
 2. 如何更新FAQ？（删除并更新）
 3. 如何解决chatgpt token超出的问题？
 4. 如何解决chatgpt输出慢的问题(--- 打字机 式输出)
+5. 爬虫 远程机器不支持 selenium
+
+```bash
+selenium.common.exceptions.WebDriverException: Message: unknown error: cannot find Chrome binary
+```
+
+sudo apt-get install chromium-browser

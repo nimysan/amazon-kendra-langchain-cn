@@ -7,14 +7,16 @@ from langchain.docstore.document import Document
 from langchain.embeddings import OpenAIEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 
-faq_dir=os.environ.get("FAQ_PATH")
 collection_name=os.environ.get("COLLECTION_NAME")
 
 
-from langchain.document_loaders import WebBaseLoader
-loader = WebBaseLoader("https://www.dji.com/sg/mini-2/faq")
-data = loader.load()
+from langchain.document_loaders import CSVLoader
+loader = CSVLoader(file_path='./annil-pos-faq.csv', csv_args={
+    'delimiter': ',',
+    'fieldnames': ['Question', 'Answer', 'Url']
+})
 
+data = loader.load()
 
 # 初始化文本分割器
 text_splitter = RecursiveCharacterTextSplitter(
@@ -23,7 +25,7 @@ text_splitter = RecursiveCharacterTextSplitter(
 )
 
 texts = text_splitter.split_documents(data)
-
+print(texts)
 
 embeddings = OpenAIEmbeddings()
 

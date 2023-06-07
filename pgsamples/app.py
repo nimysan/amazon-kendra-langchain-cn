@@ -94,7 +94,7 @@ def write_top_bar():
             provider = PROVIDER_MAP[selected_provider]
         else:
             provider = selected_provider.capitalize()
-        header = f"基于 RDS Postgresql and {provider}!"
+        header = f"Amazon ChatFAQ with {provider}!"
         st.write(f"<h3 class='main-header'>{header}</h3>", unsafe_allow_html=True)
     with col3:
         clear = st.button("Clear Chat")
