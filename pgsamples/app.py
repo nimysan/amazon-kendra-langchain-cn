@@ -5,7 +5,8 @@ import sys
 import pgvector_chatgpt as chatapp
 
 import pydevd_pycharm
-#pydevd_pycharm.settrace('localhost', port=12345, stdoutToServer=True, stderrToServer=True)
+
+# pydevd_pycharm.settrace('localhost', port=12345, stdoutToServer=True, stderrToServer=True)
 
 USER_ICON = "images/user-icon.png"
 AI_ICON = "images/ai-icon.png"
@@ -24,7 +25,6 @@ else:
     user_id = str(uuid.uuid4())
     st.session_state['user_id'] = user_id
 
-
 if 'llm_chain' not in st.session_state:
     if (len(sys.argv) > 1):
         # if (sys.argv[1] == 'chatglm'):
@@ -33,6 +33,9 @@ if 'llm_chain' not in st.session_state:
         if (sys.argv[1] == 'chatapp'):
             st.session_state['llm_app'] = chatapp
             st.session_state['llm_chain'] = chatapp.build_chain()
+        elif (sys.argv[1] == 'chatglm'):
+            st.session_state['llm_app'] = chatapp
+            st.session_state['llm_chain'] = chatapp.build_chain('chatglm')
         else:
             raise Exception("Unsupported LLM: ", sys.argv[1])
     else:
@@ -40,7 +43,7 @@ if 'llm_chain' not in st.session_state:
 
 if 'chat_history' not in st.session_state:
     st.session_state['chat_history'] = []
-    
+
 if "chats" not in st.session_state:
     st.session_state.chats = [
         {
@@ -58,7 +61,6 @@ if "answers" not in st.session_state:
 
 if "input" not in st.session_state:
     st.session_state.input = ""
-
 
 st.markdown("""
         <style>
@@ -78,14 +80,15 @@ st.markdown("""
         </style>
         """, unsafe_allow_html=True)
 
+
 def write_logo():
     col1, col2, col3 = st.columns([5, 1, 5])
     with col2:
-        st.image(AI_ICON, use_column_width='always') 
+        st.image(AI_ICON, use_column_width='always')
 
 
 def write_top_bar():
-    col1, col2, col3 = st.columns([1,10,2])
+    col1, col2, col3 = st.columns([1, 10, 2])
     with col1:
         st.image(AI_ICON, use_column_width='always')
     with col2:
@@ -100,6 +103,7 @@ def write_top_bar():
         clear = st.button("Clear Chat")
     return clear
 
+
 clear = write_top_bar()
 
 if clear:
@@ -107,6 +111,7 @@ if clear:
     st.session_state.answers = []
     st.session_state.input = ""
     st.session_state["chat_history"] = []
+
 
 def handle_input():
     input = st.session_state.input
@@ -127,7 +132,7 @@ def handle_input():
     result = chain.run_chain(llm_chain, input, chat_history)
     answer = result['answer']
     chat_history.append((input, answer))
-    
+
     document_list = []
     if 'source_documents' in result:
         for d in result['source_documents']:
@@ -140,9 +145,10 @@ def handle_input():
     })
     st.session_state.input = ""
 
+
 def write_user_message(md):
-    col1, col2 = st.columns([1,12])
-    
+    col1, col2 = st.columns([1, 12])
+
     with col1:
         st.image(USER_ICON, use_column_width='always')
     with col2:
@@ -159,33 +165,35 @@ def render_result(result):
         else:
             render_sources([])
 
+
 def render_answer(answer):
-    col1, col2 = st.columns([1,12])
+    col1, col2 = st.columns([1, 12])
     with col1:
         st.image(AI_ICON, use_column_width='always')
     with col2:
         st.info(answer['answer'])
 
+
 def render_sources(sources):
-    col1, col2 = st.columns([1,12])
+    col1, col2 = st.columns([1, 12])
     with col2:
         with st.expander("Sources"):
             for s in sources:
                 st.write(s)
 
-    
-#Each answer will have context of the question asked in order to associate the provided feedback with the respective question
+
+# Each answer will have context of the question asked in order to associate the provided feedback with the respective question
 def write_chat_message(md, q):
     chat = st.container()
     with chat:
         render_answer(md['answer'])
         render_sources(md['sources'])
-    
-        
+
+
 with st.container():
-  for (q, a) in zip(st.session_state.questions, st.session_state.answers):
-    write_user_message(q)
-    write_chat_message(a, q)
+    for (q, a) in zip(st.session_state.questions, st.session_state.answers):
+        write_user_message(q)
+        write_chat_message(a, q)
 
 st.markdown('---')
 input = st.text_input("你正在跟AI客服对话， 请输入问题开始对话吧!", key="input", on_change=handle_input)

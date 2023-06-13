@@ -3,4 +3,4 @@
 cd ..
 pip install ".[pgsamples]"
 cd pgsamples
-streamlit run app.py chatapp
+streamlit run app.py chatglm

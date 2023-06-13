@@ -2,7 +2,7 @@ import streamlit as st
 import uuid
 import sys
 
-import pgvector_chatglm as chatapp
+import pgvector_chatgpt as chatapp
 
 import pydevd_pycharm
 #pydevd_pycharm.settrace('localhost', port=12345, stdoutToServer=True, stderrToServer=True)
@@ -94,7 +94,7 @@ def write_top_bar():
             provider = PROVIDER_MAP[selected_provider]
         else:
             provider = selected_provider.capitalize()
-        header = f"基于 Amazon Kendra and {provider}!"
+        header = f"Amazon ChatFAQ with {provider}!"
         st.write(f"<h3 class='main-header'>{header}</h3>", unsafe_allow_html=True)
     with col3:
         clear = st.button("Clear Chat")
@@ -124,8 +124,6 @@ def handle_input():
 
     llm_chain = st.session_state['llm_chain']
     chain = st.session_state['llm_app']
-    print("------input-----")
-    print(input)
     result = chain.run_chain(llm_chain, input, chat_history)
     answer = result['answer']
     chat_history.append((input, answer))

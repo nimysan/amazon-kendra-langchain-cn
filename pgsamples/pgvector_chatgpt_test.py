@@ -1,16 +1,19 @@
-import json
 import os
+import json
 
+from langchain.chains import ConversationalRetrievalChain, RetrievalQAWithSourcesChain
 from langchain.chains import LLMChain
-from langchain.chains import RetrievalQAWithSourcesChain
 from langchain.chains.qa_with_sources import load_qa_with_sources_chain
+from langchain.chains.question_answering import load_qa_chain
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.llms import OpenAI
-from langchain.llms.sagemaker_endpoint import SagemakerEndpoint, LLMContentHandler
+from langchain.llms.sagemaker_endpoint import ContentHandlerBase, SagemakerEndpoint, LLMContentHandler
 from langchain.memory import ConversationBufferMemory
 from langchain.prompts import PromptTemplate
 from langchain.vectorstores.pgvector import PGVector
+import pydevd_pycharm
 
+# pydevd_pycharm.settrace('localhost', port=12345, stdoutToServer=True, stderrToServer=True)
 
 class bcolors:
     HEADER = '\033[95m'
@@ -61,6 +64,30 @@ _template = """
   """
 CONDENSE_QUESTION_PROMPT = PromptTemplate.from_template(_template)
 
+stuff_prompt_template = """你好啊  试试这个 answer the question at the end. If you don't know the answer, just say that you don't know, don't try to make up an answer.
+
+{context}
+
+Question: {question}
+Answer in Italian:"""
+
+stuff_question_prompt_template = """此AI是一位技术专家，会给出专业精准的回答。
+    如果AI不能从以下信息中获得答案，请回答不知道，不要编造答案。
+      
+    信息: 
+    {summaries}
+      
+    问题:
+    {question} 
+      
+      
+    以上的每条信息都是独立的，请基于以上信息给出专业且精准的回答。答案以"根据以上消息得知："开头。请用中文回答。
+    如果没有在以上消息中获得答案，请回答不知道。
+      
+    Solution:"""
+STUFF_PROMPT = PromptTemplate(
+    template=stuff_question_prompt_template, input_variables=["summaries", "question"]
+)
 
 def build_retriever(collection_name):
     # PG Vector 向量存储库
@@ -100,12 +127,15 @@ def build_llm(llm):
             accepts = "application/json"
 
             def transform_input(self, prompt: str, model_kwargs: dict) -> bytes:
-                input_str = json.dumps({"ask": prompt})
+                input_str = json.dumps({"text_inputs": prompt})
                 return input_str.encode('utf-8')
 
             def transform_output(self, output: bytes) -> str:
+                # response_json = json.loads(output.read().decode("utf-8"))
                 response_json = json.loads(output.read())
-                return response_json["answer"]
+                print(response_json)
+                # return response_json[0]["generated_text"]
+                return response_json["generated_texts"][0]
 
         content_handler = ContentHandler()
         endpoint_name = os.environ.get("ENDPOINT_NAME")
@@ -149,7 +179,7 @@ def build_chain(llm="chatgpt"):
     FINAL ANSWER IN ITALIAN:"""
     PROMPT = PromptTemplate(template=template, input_variables=["summaries", "question"])
     # 这种方式只针对stuff才有效
-    qa_chain = load_qa_with_sources_chain(llm=llm, chain_type="stuff", verbose=True, prompt=PROMPT)
+    qa_chain = load_qa_with_sources_chain(llm=llm, chain_type="stuff", verbose=True, prompt=STUFF_PROMPT)
 
     # 这个是针对map_reduce的
     # qa_chain = load_qa_with_sources_chain(llm=llm, chain_type="map_reduce", question_prompt=PROMPT, verbose=True)
@@ -159,10 +189,9 @@ def build_chain(llm="chatgpt"):
         raise "please give collection name"
 
     print("knowledge bases on collection " + collection_name)
-    qa = RetrievalQAWithSourcesChain.from_chain_type(
+    qa = RetrievalQAWithSourcesChain(
+        combine_documents_chain=qa_chain,
         retriever=build_retriever(collection_name),  # pgvector
-        # question_generator=question_generator,  # 问题产生器
-        llm = llm,
         verbose=True
     )
     return qa
@@ -174,6 +203,6 @@ def run_chain(chain, prompt: str, history=[]):
 
 
 if __name__ == "__main__":
-    qa = build_chain()
-    run_chain(qa, "你好", history=[])
-    # print(pp['answer'])
+    qa = build_chain("chatgpt")
+    pp = run_chain(qa, "怎么对小票做备注？", history=[])
+    print(pp['answer'])
